@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Jobs\EventFormFields;
-use App\Repositories\Backend\Event\EventRepository;
-
+use App\Contracts\Repositories\EventRepository;
 use App\Http\Requests;
 use App\Http\Requests\Backend\EventCreateRequest;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Redirect;
 use App\Http\Requests\Backend\EventUpdateRequest;
 
 class EventController extends BaseController
 {
+
     public function __construct(EventRepository $repository)
     {
         $this->repository = $repository;
@@ -25,8 +26,8 @@ class EventController extends BaseController
      */
     public function index()
     {
-        $event = $this->repository->getAll(config('custom.per_page'));
-        return view('backend.event.index', ['data' => $event]);
+        $event = $this->repository->orderBy('id', 'desc')->paginate(config('custom.per_page'));
+        return view('backend.event.index', ['events' => $event]);
     }
 
     /**
@@ -36,9 +37,7 @@ class EventController extends BaseController
      */
     public function create()
     {
-        $data = $this->dispatch(new EventFormFields());
-
-        return view('backend.event.create', $data);
+        return view('backend.event.create');
     }
 
     /**
@@ -75,8 +74,9 @@ class EventController extends BaseController
      */
     public function edit($id)
     {
-        $data = $this->dispatch(new EventFormFields($id));
-        return view('backend.event.edit', $data);
+        $data = $this->repository->find($id);
+
+        return view('backend.event.edit', ['event' => $data]);
     }
 
     /**
@@ -88,7 +88,7 @@ class EventController extends BaseController
      */
     public function update(EventUpdateRequest $request, $id)
     {
-        if ($this->repository->update($id, $request->eventFillData())) {
+        if ($this->repository->update($request->eventFillData(), $id)) {
             return Redirect::to('admin/event');
         } else {
             return Redirect::back()->withInput()->withErrors('保存失败！');

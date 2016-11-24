@@ -4,6 +4,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Environment
+    |--------------------------------------------------------------------------
+    |
+    | This value determines the "environment" your application is currently
+    | running in. This may determine how you prefer to configure various
+    | services your application utilizes. Set this in your ".env" file.
+    |
+    */
+    'env' => env('APP_ENV', 'production'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Debug Mode
     |--------------------------------------------------------------------------
     |
@@ -37,7 +49,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC+8',
+    'timezone' => 'PRC',  //Asia/Shanghai, PRC, UTC+8
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
@@ -62,6 +74,7 @@ return [
     */
 
     'fallback_locale' => 'en',
+
     /*
     |--------------------------------------------------------------------------
     | Encryption Key
@@ -74,7 +87,8 @@ return [
     */
 
     'key' => env('APP_KEY', 'SomeRandomString'),
-    'cipher' => MCRYPT_RIJNDAEL_128,
+
+    'cipher' => 'AES-256-CBC',
     /*
     |--------------------------------------------------------------------------
     | Logging Configuration
@@ -105,13 +119,11 @@ return [
         /*
          * Laravel Framework Service Providers...
          */
-        Illuminate\Foundation\Providers\ArtisanServiceProvider::class,
         Illuminate\Auth\AuthServiceProvider::class,
         Illuminate\Broadcasting\BroadcastServiceProvider::class,
         Illuminate\Bus\BusServiceProvider::class,
         Illuminate\Cache\CacheServiceProvider::class,
         Illuminate\Foundation\Providers\ConsoleSupportServiceProvider::class,
-        Illuminate\Routing\ControllerServiceProvider::class,
         Illuminate\Cookie\CookieServiceProvider::class,
         Illuminate\Database\DatabaseServiceProvider::class,
         Illuminate\Encryption\EncryptionServiceProvider::class,
@@ -119,6 +131,7 @@ return [
         Illuminate\Foundation\Providers\FoundationServiceProvider::class,
         Illuminate\Hashing\HashServiceProvider::class,
         Illuminate\Mail\MailServiceProvider::class,
+        Illuminate\Notifications\NotificationServiceProvider::class,
         Illuminate\Pagination\PaginationServiceProvider::class,
         Illuminate\Pipeline\PipelineServiceProvider::class,
         Illuminate\Queue\QueueServiceProvider::class,
@@ -135,24 +148,17 @@ return [
         App\Providers\AuthServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        App\Providers\BroadcastServiceProvider::class,
         /**
          * Custom Service Providers
          */
-        App\Providers\BackendServiceProvider::class,
         Collective\Html\HtmlServiceProvider::class,
-        App\Providers\OAuthServiceProvider::class,
-        Overtrue\LaravelWechat\ServiceProvider::class,
-        Barryvdh\Debugbar\ServiceProvider::class,
         Ender\UEditor\UEditorServiceProvider::class,
         Intervention\Image\ImageServiceProvider::class,
-        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
         Laracasts\Flash\FlashServiceProvider::class,
-        Tymon\JWTAuth\Providers\JWTAuthServiceProvider::class,
-        LucaDegasperi\OAuth2Server\Storage\FluentStorageServiceProvider::class,
-        LucaDegasperi\OAuth2Server\OAuth2ServerServiceProvider::class,
-        Dingo\Api\Provider\LaravelServiceProvider::class,
-        Arcanedev\LogViewer\LogViewerServiceProvider::class
-
+        Mews\Captcha\CaptchaServiceProvider::class,
+        Prettus\Repository\Providers\RepositoryServiceProvider::class,
+        Zizaco\Entrust\EntrustServiceProvider::class,
     ],
     /*
     |--------------------------------------------------------------------------
@@ -186,6 +192,7 @@ return [
         'Lang' => Illuminate\Support\Facades\Lang::class,
         'Log' => Illuminate\Support\Facades\Log::class,
         'Mail' => Illuminate\Support\Facades\Mail::class,
+        'Notification' => Illuminate\Support\Facades\Notification::class,
         'Password' => Illuminate\Support\Facades\Password::class,
         'Queue' => Illuminate\Support\Facades\Queue::class,
         'Redirect' => Illuminate\Support\Facades\Redirect::class,
@@ -206,14 +213,12 @@ return [
         'Access' => \App\Services\Access\Facades\Access::class,
         'Form' => Collective\Html\FormFacade::class,
         'Html' => Collective\Html\HtmlFacade::class,
-        'Wechat' => Overtrue\LaravelWechat\Facade::class,
         'Debugbar' => Barryvdh\Debugbar\Facade::class,
         'UEditor' => Ender\UEditor\UEditor::class,
         'Image' => Intervention\Image\Facades\Image::class,
         'Flash' => Laracasts\Flash\Flash::class,
-        'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
-        'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
-        'Authorizer' => LucaDegasperi\OAuth2Server\Facades\Authorizer::class,
+        'Captcha' => Mews\Captcha\Facades\Captcha::class,
+        'Entrust'   => Zizaco\Entrust\EntrustFacade::class,
 
     ],
 

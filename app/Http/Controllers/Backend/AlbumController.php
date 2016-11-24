@@ -2,27 +2,34 @@
 
 namespace App\Http\Controllers\Backend;
 
+use App\Services\UploadsManager;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-
 use App\Http\Requests;
-use App\Repositories\Backend\Album\AlbumRepository;
+use App\Contracts\Repositories\AlbumRepository;
+use Illuminate\Support\Facades\Input;
+use Laracasts\Flash\Flash;
+use Redirect;
 
 class AlbumController extends BaseController
 {
-    public function __construct(AlbumRepository $repository)
+    protected $album;
+    protected $manage;
+
+    public function __construct(AlbumRepository $album, UploadsManager $manager)
     {
-        $this->repository = $repository;
+        $this->album = $album;
+        $this->manage = $manager;
     }
 
     /**
      * Display a listing of the resource.
-     *
-     * @return Response
      */
     public function index()
     {
-        $album = $this->repository->getAll(config('custom.per_page'));
-        print_r($album->toArray());
+        $albums = $this->album->paginate(config('custom.per_page'));
+
+        return view('backend.album.index', ['albums' => $albums]);
     }
 
     /**
@@ -32,24 +39,27 @@ class AlbumController extends BaseController
      */
     public function create()
     {
-        //
+        return view('backend.album.create');
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @return Response
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function store()
+    public function store(Request $request)
     {
-        //
+        if ($this->album->create($request->all())) {
+            return redirect()->route('admin.album.index');
+        }
+        return Redirect::back()->withInput()->withErrors('保存失败！');
     }
 
     /**
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return Response
      */
     public function show($id)
     {
@@ -59,33 +69,73 @@ class AlbumController extends BaseController
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
-     * @return Response
+     * @param  int $id
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function edit($id)
     {
-        //
+        $album = $this->album->find($id);
+
+        return view('backend.album.edit', ['album' => $album]);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  int  $id
-     * @return Response
+     * @param Request $request
+     * @param  int    $id
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function update($id)
+    public function update(Request $request, $id)
     {
-        //
+        if ($this->album->update($request->all(), $id)) {
+            return redirect()->route('admin.album.index');
+        }
+        return Redirect::back()->withInput()->withErrors('保存失败！');
     }
 
     /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return Response
      */
     public function destroy($id)
     {
-        //
+        $this->album->delete($id);
+
+        return redirect()
+            ->route('admin.album.index')
+            ->withSuccess('Post deleted.');
+    }
+
+    /**
+     * 上传图片
+     *
+     * @param $id
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function photos($id)
+    {
+
+        $album = $this->album->find($id);
+
+        $photos = $album->photos()->paginate(100);
+
+        return view('backend.album.photos', ['album' => $album, 'photos' => $photos]);
+    }
+
+    /**
+     * 保存图片
+     */
+    public function storePhoto()
+    {
+
+        $imageInfo = $this->manage->uploadImage(Input::file('file'));
+
+        $albumId = Input::get('id');
+
+        $ret = $this->album->storePhoto($albumId, $imageInfo);
+
+        return JsonResponse::create($ret);
     }
 }

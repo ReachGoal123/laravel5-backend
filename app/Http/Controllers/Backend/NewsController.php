@@ -2,31 +2,34 @@
 
 namespace App\Http\Controllers\Backend;
 
-use Illuminate\Http\Request;
-
-use App\Http\Requests;
-use App\Repositories\Backend\News\NewsContract;
-use Illuminate\Support\Facades\Input;
+use App\Contracts\Repositories\NewsRepository;
+use App\Contracts\Repositories\NewsCategoryRepository;
 use Illuminate\Support\Facades\Redirect;
-use App\Http\Requests\Backend\NewsRequest;
 use App\Services\CategoryService;
-use App\Models\News;
-use Auth, Log;
-use App\Jobs\NewsFormFields;
 use App\Http\Requests\Backend\NewsCreateRequest;
 use App\Http\Requests\Backend\NewsUpdateRequest;
 
+/**
+ * Class NewsController
+ * @package App\Http\Controllers\Backend
+ */
 class NewsController extends BaseController
 {
 
     /**
-     * @var NewsContract
+     * @var NewsRepository
      */
     protected $news;
 
-    public function __construct(NewsContract $news)
+    /**
+     * @var NewsCategoryRepository
+     */
+    protected $category;
+
+    public function __construct(NewsRepository $news, NewsCategoryRepository $category)
     {
         $this->news = $news;
+        $this->category = $category;
     }
     /**
      * Display a listing of the resource.
@@ -35,7 +38,7 @@ class NewsController extends BaseController
      */
     public function index()
     {
-        $news = $this->news->getRolesPaginated(config('custom.per_page'), 'id', 'desc');
+        $news = $this->news->orderBy('id', 'desc')->paginate(10);
         return view('backend.news.index', ['news' => $news]);
     }
 
@@ -46,8 +49,13 @@ class NewsController extends BaseController
      */
     public function create()
     {
-        $data = $this->dispatch(new NewsFormFields());
-        $category = $this->repository->getAllCategory();
+        $data = [];
+        //$data = $this->dispatch(new NewsFormFields());
+        $data = [
+            'page_image' => '',
+            'content' => ''
+        ];
+        $category = $this->category->all();
         $data['selectCategory'] = CategoryService::unlimitedForLevel($category->toArray());
 
         return view('backend.news.create', $data);
@@ -61,8 +69,7 @@ class NewsController extends BaseController
      */
     public function store(NewsCreateRequest $request)
     {
-        if ($news = $this->repository->create($request->newsFillData())) {
-            trim(Input::get('tags')) &&  $news->syncTags(array_map('trim', explode(',', Input::get('tags'))));
+        if ($news = $this->news->create($request->newsFillData())) {
             return Redirect::to('admin/news');
         } else {
             return Redirect::back()->withInput()->withErrors('保存失败！');
@@ -77,7 +84,7 @@ class NewsController extends BaseController
      */
     public function show($id)
     {
-        $news = $this->repository->find($id);
+        $news = $this->news->find($id);
         print_r($news->category->name);exit;
     }
 
@@ -89,10 +96,11 @@ class NewsController extends BaseController
      */
     public function edit($id)
     {
-        $data = $this->dispatch(new NewsFormFields($id));
-        $category = $this->repository->getAllCategory();
-        $data['selectCategory'] = CategoryService::unlimitedForLevel($category->toArray());
-        //print_r($data);exit;
+        $data['news'] = $this->news->find($id);
+
+        $categories = $this->category->all();
+        $data['selectCategory'] = CategoryService::unlimitedForLevel($categories->toArray());
+
         return view('backend.news.edit', $data);
     }
 
@@ -105,16 +113,14 @@ class NewsController extends BaseController
      */
     public function update(NewsUpdateRequest $request, $id)
     {
-        $news = News::findOrNew($id);
-        if ($this->repository->update($id, $request->newsFillData())) {
-            Log::info('update...'. Input::get('tags'));
-            $tags = Input::get('tags') ? array_map('trim', explode(',', Input::get('tags'))) : [];
-            $news->syncTags($tags);
+        if ($this->news->update($request->newsFillData(), $id)) {
+            // Log::info('update...'. Input::get('tags'));
+            // $tags = Input::get('tags') ? array_map('trim', explode(',', Input::get('tags'))) : [];
+            // $news->syncTags($tags);
             return Redirect::to('admin/news');
         } else {
-            //return Redirect::back()->withInput()->withErrors('保存失败！');
+            return Redirect::back()->withInput()->withErrors('保存失败！');
         }
-
     }
 
     /**

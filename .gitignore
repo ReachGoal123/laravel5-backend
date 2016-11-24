@@ -2,10 +2,22 @@
 /node_modules
 .env
 /config/wechat.php
+/storage/*.key
+
+/public/css
+/public/js
+/public/img
+/public/fonts
+/public/plugins
 /public/uploads
 /public/js/build
-/resources/assets
-/resources/views/frontend
+/public/ueditor
+/public/semantic/
 
-.idea
+/resources/assets/bower
+
 .DS_Store
+.idea
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php

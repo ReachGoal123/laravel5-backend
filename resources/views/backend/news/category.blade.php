@@ -16,90 +16,100 @@
 @endsection
 
 @section('content')
-    <div class="rows">
-        <div class="col-md-8">
-            <table id="example" class="table table-striped table-bordered table-hover" cellspacing="0" width="100%">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>分类名称</th>
-                        <th>上级分类</th>
-                        <th>创建时间</th>
-                        <th>更新时间</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @inject('cate', 'App\Services\CategoryService')
-                    @foreach ($category as $item)
-                    <tr>
-                        <th>{{ $item->id }}</th>
-                        <th>{{ $item->name }}</th>
-                        <th>
-                        @if ($item->pid === 0)
-                            <span class="red">顶级分类</span>
-                        @else
-                            @foreach($cate::getParents($selectCategory, $item->pid) as $v)
-                                {{ $v['name']  . " >" }}
-                            @endforeach
-                        @endif
-                        </th>
-                        <th>{{ $item->created_at }}</th>
-                        <th>{{ $item->updated_at }}</th>
-                        <th>
-                            <div class="hidden-sm hidden-xs action-buttons">
-                                <a class="green" href="{{ url('admin/news/1111/edit') }}">
-                                    <i class="ace-icon fa fa-pencil bigger-130"></i>
-                                </a>
-                                <a class="red" href="{{ url('admin/news/111') }}">
-                                    <i class="ace-icon fa fa-trash-o bigger-130"></i>
-                                </a>
-                            </div>
-                        </th>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            {!! $category->render() !!}
-        </div>
-        <div class="col-md-4">
-                    <form class="form-horizontal" id="news_form" role="form" method="POST" action="{{ URL::to('admin/news/category') }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 分类名称 </label>
-                            <div class="col-sm-9">
-                                <input type="text" name="name" id="form-field-1" placeholder="分类名称" class="col-xs-10 col-sm-5" required>
-                            </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label no-padding-right" for="form-field-1"> 上级分类 </label>
-                            <div class="col-sm-9">
-                                <select name="pid">
-                                    <option value="0">顶级分类</option>
-                                    @foreach ($selectCategory as $item)
-                                    <option value="{{ $item['id'] }}">{{ $item['html'] }}{{ $item['name'] }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
+    <div class="row">
+        <div class="col-xs-12">
 
-                        <div class="clearfix form-actions">
-                            <div class="col-md-offset-3 col-md-10">
-                                <button class="btn btn-info" type="submit">
-                                    <i class="ace-icon fa fa-check bigger-110"></i>
-                                    保存
-                                </button>
-
-                                &nbsp; &nbsp; &nbsp;
-                                <button class="btn" type="reset">
-                                    <i class="ace-icon fa fa-undo bigger-110"></i>
-                                    重置
-                                </button>
-                            </div>
+            <div class="box box-success">
+                <div class="box-header">
+                    <h3 class="box-title">
+                        <a href="{{ route('admin.news.category.create') }}" class="btn btn-sm btn-success"><i class="fa fa-plus"></i> 添加分类</a>
+                    </h3>
+                    <div class="box-tools">
+                        <!--
+                        <div class="form-inline  pull-right">
+                            <form action="" method="get">
+                                <fieldset>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-addon"><strong>Id</strong></span>
+                                        <input type="text" class="form-control" placeholder="Id" name="id" value="">
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-addon"><strong>用户名</strong></span>
+                                        <input type="text" class="form-control" placeholder="用户名" name="name" value="">
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-addon"><strong>邮箱</strong></span>
+                                        <input type="text" class="form-control" placeholder="邮箱" name="email" value="">
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-btn">
+                                            <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </form>
                         </div>
-                    </form>
+                        -->
+
+                    </div>
                 </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <table id="user-table" class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>分类名称</th>
+                            <th>上级分类</th>
+                            <th>创建时间</th>
+                            <th>更新时间</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @inject('cate', 'App\Services\CategoryService')
+                        @foreach ($categories as $item)
+                            <tr>
+                                <td>{{ $item->id }}</td>
+                                <td>{{ $item->name }}</td>
+                                <td>
+                                    @if ($item->pid === 0)
+                                        <span class="red">顶级分类</span>
+                                    @else
+                                        @foreach($cate::getParents($selectCategory, $item->pid) as $key => $v)
+                                            {{ $v['name'] . ">"}}
+                                        @endforeach
+                                    @endif
+                                </td>
+                                <td>{{ $item->created_at }}</td>
+                                <td>{{ $item->updated_at }}</td>
+                                <td>
+                                    <div class="hidden-sm hidden-xs action-buttons">
+                                        <a href="{{ url('admin/news/category/'.$item->id.'/edit') }}">
+                                            <i class="fa fa-edit text-green fa-lg"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.box-body -->
+
+                <div class="box-footer">
+
+                    <div class="pull-right">
+                        {!! $categories->render() !!}
+                    </div>
+                </div>
+            </div>
+            <!-- /.box -->
+        </div>
+        <!-- /.col -->
     </div>
+    <!-- /.row -->
+
 @endsection
 
