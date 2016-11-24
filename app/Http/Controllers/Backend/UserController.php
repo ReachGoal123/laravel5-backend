@@ -7,36 +7,36 @@ use App\Http\Requests;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Redirect;
-use App\Repositories\Backend\User\UserContract;
-use App\Repositories\Backend\Role\RoleContract;
-use App\Repositories\Backend\Permission\PermissionContract;
+use App\Contracts\Repositories\UserRepository;
+use App\Contracts\Repositories\RoleRepository;
+use App\Contracts\Repositories\PermissionRepository;
 use Laracasts\Flash\Flash;
 
 class UserController extends BaseController
 {
 
     /**
-     * @var UserContract
+     * @var UserRepository
      */
     protected $users;
 
     /**
-     * @var RoleContract
+     * @var RoleRepository
      */
     protected $roles;
 
     /**
-     * @var PermissionContract
+     * @var PermissionRepository
      */
     protected $permissions;
 
 
     /**
-     * @param UserContract       $users
-     * @param RoleContract       $roles
-     * @param PermissionContract $permissions
+     * @param UserRepository        $users
+     * @param RoleRepository        $roles
+     * @param PermissionRepository    $permissions
      */
-    public function __construct(UserContract $users, RoleContract $roles, PermissionContract $permissions)
+    public function __construct(UserRepository $users, RoleRepository $roles, PermissionRepository $permissions)
     {
         $this->users = $users;
         $this->roles = $roles;
@@ -49,7 +49,7 @@ class UserController extends BaseController
      */
     public function index()
     {
-        $users = $this->users->getAllUsers(config('custom.per_page'));
+        $users = $this->users->orderBy('id', 'desc')->paginate(10);
 
         return view('backend.user.index', ['users' => $users]);
     }
@@ -63,7 +63,7 @@ class UserController extends BaseController
     {
         return view('backend.user.create',
             [
-                'roles' => $this->roles->getAllRoles('id', 'desc', true),
+                'roles' => $this->roles->all(),
                 'userRoles' => array()
             ]
         );
@@ -76,7 +76,7 @@ class UserController extends BaseController
      */
     public function store(Request $request)
     {
-        if ($this->users->create($request->except('assignees_roles'), $request->only('assignees_roles'))) {
+        if ($this->users->create($request->all())) {
             return redirect()->route('admin.auth.user.index');
         }
         return Redirect::back()->withInput()->withErrors('保存失败！');
@@ -107,8 +107,8 @@ class UserController extends BaseController
             'backend.user.edit',
             [
                 'user' => $user,
-                'userRoles' => $user->roles->lists('id')->all(),
-                'roles' => $this->roles->getAllRoles('id', 'desc', true)
+                'userRoles' => $user->roles->pluck('id')->all(),
+                'roles' => $this->roles->all()
             ]
         );
     }
@@ -122,7 +122,7 @@ class UserController extends BaseController
      */
     public function update($id, Request $request)
     {
-        if ($this->users->update($id, $request->except('assignees_roles'), $request->only('assignees_roles'))) {
+        if ($this->users->update($request->all(), $id)) {
             return redirect()->route('admin.auth.user.index');
         }
         return Redirect::back()->withInput()->withErrors('保存失败！');

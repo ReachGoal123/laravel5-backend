@@ -2,105 +2,32 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Zizaco\Entrust\EntrustRole;
+use Zizaco\Entrust\Traits\EntrustRoleTrait;
 
-class Role extends Model
+/**
+ * App\Models\Role
+ *
+ * @property integer $id
+ * @property string $name
+ * @property string $display_name
+ * @property string $description
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\User[] $users
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Permission[] $perms
+ * @method static \Illuminate\Database\Query\Builder|\App\Models\Role whereId($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\Models\Role whereName($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\Models\Role whereDisplayName($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\Models\Role whereDescription($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\Models\Role whereCreatedAt($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\Models\Role whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+class Role extends EntrustRole
 {
 
-    /**
-     * The database table used by the model.
-     *
-     * @var string
-     */
-    protected $table = 'roles';
+    use EntrustRoleTrait;
 
-    /**
-     * A role may by given various permissions
-     * many-to-many relationship method.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function permissions()
-    {
-        return $this->belongsToMany(Permission::class, 'permission_role', 'role_id', 'permission_id');
-    }
-
-    /**
-     * @return mixed
-     */
-    public function users()
-    {
-        return $this->belongsToMany(User::class, 'role_user', 'role_id', 'user_id');
-    }
-
-    /**
-     * Save the inputted permissions.
-     *
-     * @param  mixed  $inputPermissions
-     * @return void
-     */
-    public function savePermissions($inputPermissions)
-    {
-        if (!empty($inputPermissions)) {
-            $this->permissions()->sync($inputPermissions);
-        } else {
-            $this->permissions()->detach();
-        }
-    }
-    /**
-     * Attach permission to current role.
-     *
-     * @param  object|array $permission
-     * @return void
-     */
-    public function attachPermission($permission)
-    {
-        if (is_object($permission)) {
-            $permission = $permission->getKey();
-        }
-        if (is_array($permission)) {
-            $permission = $permission['id'];
-        }
-        $this->permissions()->attach($permission);
-    }
-    /**
-     * Detach permission form current role.
-     *
-     * @param  object|array $permission
-     * @return void
-     */
-    public function detachPermission($permission)
-    {
-        if (is_object($permission)) {
-            $permission = $permission->getKey();
-        }
-        if (is_array($permission)) {
-            $permission = $permission['id'];
-        }
-        $this->permissions()->detach($permission);
-    }
-    /**
-     * Attach multiple permissions to current role.
-     *
-     * @param  mixed  $permissions
-     * @return void
-     */
-    public function attachPermissions($permissions)
-    {
-        foreach ($permissions as $permission) {
-            $this->attachPermission($permission);
-        }
-    }
-    /**
-     * Detach multiple permissions from current role
-     *
-     * @param  mixed  $permissions
-     * @return void
-     */
-    public function detachPermissions($permissions)
-    {
-        foreach ($permissions as $permission) {
-            $this->detachPermission($permission);
-        }
-    }
+    protected $fillable = ['name', 'display_name', 'description'];
 }

@@ -2,25 +2,24 @@
 
 namespace App\Http\Controllers\Backend;
 
-use App\Repositories\Backend\Permission\PermissionContract;
-use App\Repositories\Backend\Role\RoleContract;
+use App\Contracts\Repositories\PermissionRepository;
+use App\Contracts\Repositories\RoleRepository;
 use Illuminate\Http\Request;
-use App\Http\Requests;
 
 class RoleController extends BaseController
 {
 
     /**
-     * @var RoleContract
+     * @var RoleRepository
      */
     protected $roles;
 
     /**
-     * @var
+     * @var PermissionRepository
      */
     protected $permissions;
 
-    public function __construct(RoleContract $roles, PermissionContract $permissions)
+    public function __construct(RoleRepository $roles, PermissionRepository $permissions)
     {
         $this->roles = $roles;
         $this->permissions = $permissions;
@@ -33,7 +32,7 @@ class RoleController extends BaseController
      */
     public function index()
     {
-        $roles = $this->roles->getRolesPaginated(config('custom_per_page'));
+        $roles = $this->roles->orderBy('id', 'desc')->paginate(10);
         return view('backend.role.index', compact('roles'));
     }
 
@@ -46,7 +45,7 @@ class RoleController extends BaseController
     {
         return view('backend.role.create',
             [
-                'permissions' => $this->permissions->getAllPermissions('id', 'desc', true),
+                'permissions' => $this->permissions->all(),
                 'rolePermissions' => array()
             ]
         );
@@ -83,14 +82,14 @@ class RoleController extends BaseController
      */
     public function edit($id)
     {
-        $role = $this->roles->find($id, true);
+        $role = $this->roles->find($id);
 
         return view(
             'backend.role.edit',
             [
                 'role' => $role,
-                'rolePermissions' => $role->permissions->lists('id')->all(),
-                'permissions' => $this->permissions->getAllPermissions('id', 'asc', true)
+                'rolePermissions' => $role->perms->pluck('id')->all(),
+                'permissions' => $this->permissions->all()
             ]
         );
     }
@@ -103,9 +102,8 @@ class RoleController extends BaseController
      */
     public function update($id, Request $request)
     {
-        $this->roles->update($id, $request->all());
+        $this->roles->update($request->all(), $id);
         return redirect()->route('admin.auth.role.index')->withSuccess(trans('alerts.roles.updated'));
-
     }
 
     /**
